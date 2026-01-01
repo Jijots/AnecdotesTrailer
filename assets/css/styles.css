@@ -1,0 +1,210 @@
+:root{
+	--paper-bg: #faffff;
+	--text-color: #23446b;
+	--title-delay: 0.35s;
+	--title-duration: 2.4s;
+	--book-delay: 1.9s;
+	--init-bg: #10202a; /* dark initial background during title */
+	--bg-transition-duration: 0.9s;
+	--book-duration: 900ms;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+		margin:0;
+		min-height:100%;
+		/* start with a dark background; we'll switch to the paper color via .light-bg */
+		background:var(--init-bg);
+		color:var(--text-color);
+	font-family: Georgia, 'Times New Roman', serif;
+	display:flex;
+	flex-direction:column;
+	align-items:center;
+	justify-content:center;
+	padding:40px;
+		transition: background var(--bg-transition-duration) ease-in-out;
+}
+
+/* when ready, JS will add .light-bg to transition to your paper background */
+body.light-bg{
+	background:var(--paper-bg);
+}
+
+.book{
+	/* a bit wider on larger screens to avoid awkward word wraps */
+	width:min(980px,94%);
+	background:linear-gradient(180deg,#fffdf9 0%, #fffdfb 100%);
+	padding: clamp(20px, 6vw, 48px);
+	border-radius:6px;
+	color:var(--text-color);
+    /* use Alice for the main 'book' content for an elegant serif appearance */
+    font-family: "Alice", serif;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+	box-shadow:0 10px 30px rgba(35,68,107,0.08);
+	border:1px solid rgba(35,68,107,0.06);
+	position:relative;
+	overflow:hidden;
+	line-height:1.7;
+	/* start hidden and animate in */
+	opacity:0;
+	transform:translateY(28px) scale(0.985);
+	animation:bookPop var(--book-duration) cubic-bezier(.2,.8,.2,1) forwards;
+	animation-delay:var(--book-delay);
+}
+
+/* subtle old-paper speckles and stains */
+.book::before{
+	content:'';
+	position:absolute;
+	inset:0;
+	pointer-events:none;
+	background-image:
+		radial-gradient(circle at 12% 18%, rgba(0,0,0,0.04) 0.6px, rgba(0,0,0,0.04) 0.6px, transparent 1.6px),
+		radial-gradient(circle at 28% 72%, rgba(0,0,0,0.03) 0.8px, transparent 2px),
+		radial-gradient(circle at 64% 40%, rgba(0,0,0,0.025) 0.7px, transparent 2px),
+		radial-gradient(circle at 82% 82%, rgba(0,0,0,0.035) 1px, transparent 2.4px),
+		radial-gradient(circle at 50% 10%, rgba(0,0,0,0.02) 0.5px, transparent 1.6px);
+	background-size: 8px 8px, 12px 12px, 10px 10px, 18px 18px, 9px 9px;
+	mix-blend-mode:multiply;
+	opacity:0.9;
+}
+
+/* light vignette + edge wear */
+.book::after{
+	content:'';
+	position:absolute;
+	inset:0;
+	pointer-events:none;
+	background: radial-gradient(1200px 600px at 50% 0%, rgba(0,0,0,0.02), transparent 30%),
+							linear-gradient(180deg, rgba(0,0,0,0.02), transparent 40%);
+	mix-blend-mode:multiply;
+}
+
+header h1, .book h1, .book h2{
+	color:var(--text-color);
+	margin:0 0 12px 0;
+}
+
+.book h1{font-size:28px;text-align:center}
+.book h2{font-size:18px}
+
+/* Alice font helper (user requested) */
+.alice-regular{
+	font-family: "Alice", serif;
+	font-weight:400;
+	font-style:normal;
+}
+
+/* Heading / Typewriter animation */
+/* Position the title absolutely so it sits centered above the book and can animate independently. */
+header{
+	position: absolute;
+	inset: 0;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	pointer-events:none;
+	z-index:10;
+}
+
+/* header text is composed of .char spans inserted by JS. */
+header h1{
+	pointer-events:auto;
+	opacity:1;
+	margin:0;
+	/* slightly smaller maximum to avoid excessive overlap on large screens */
+	font-size: clamp(2.4rem, 9vw, 4rem);
+	letter-spacing:0.6px;
+	text-align:center;
+}
+
+.char{
+	display:inline-block;
+	opacity:0;
+	transform:translateY(-8px);
+	will-change: transform, opacity;
+	animation: charIn 420ms cubic-bezier(.2,.8,.2,1) forwards;
+	/* animation-delay set inline via --i variable by JS */
+	animation-delay: calc(var(--i, 0) * 0.07s + var(--title-delay, 0s));
+}
+
+@keyframes charIn{
+	to{opacity:1; transform:translateY(0)}
+}
+
+/* When the header should disappear, JS will add .title-hide to header h1.
+	 This provides a smooth, eased fade+translate out. */
+header h1.title-hide{
+	/* faster fade-out to avoid lagging overlay */
+	transition: opacity 0.45s ease-in-out, transform 0.45s ease-in-out;
+	opacity:0;
+	transform:translateY(14px) scale(0.99);
+	pointer-events:none;
+}
+
+@keyframes bookPop{
+	from{opacity:0; transform:translateY(28px) scale(0.985); filter: blur(2px)}
+	to{opacity:1; transform:translateY(0) scale(1); filter: blur(0)}
+}
+
+/* main paragraph sizing: slightly larger but capped to avoid awkward single-word lines */
+.book p{font-size:clamp(15px, 2.4vw, 18px); line-height:1.95; margin:0 0 20px 0}
+/* slightly larger headings in the main book */
+/* stronger headings */
+.book h2{font-size:clamp(20px, 3vw, 26px); margin-top:14px; margin-bottom:12px}
+
+/* Content reveal after the book appears */
+.book h2, .book p, .book footer p{
+		opacity:0;
+		transform:translateY(6px);
+		transition:opacity 420ms ease, transform 420ms ease;
+		animation: contentIn 640ms ease forwards;
+		/* start shortly after the book animation; --book-delay contains an 's' unit set from JS */
+		animation-delay: calc(var(--book-delay) + 0.12s);
+}
+
+@keyframes contentIn{
+	to{opacity:1; transform:translateY(0)}
+}
+
+/* subtle inner border + slightly warmer paper tone for intrigue */
+.book{
+	box-shadow: 0 18px 40px rgba(35,68,107,0.06);
+	border-left: 6px solid rgba(35,68,107,0.03);
+}
+
+/* increase paragraph contrast and spacing for readability */
+.book p{ color: rgba(35,68,107,0.95); letter-spacing:0.01em; }
+
+/* author / footer styling */
+.book footer p{
+	/* a touch larger and slightly bolder so the author stands out */
+	font-size: clamp(16px, 2.4vw, 20px);
+	margin: 10px 0 0 0;
+	color: rgba(35,68,107,0.95);
+	font-weight:500;
+}
+
+/* make small screens comfortable */
+@media (max-width:900px){
+	body{padding:24px}
+	.book{width:94%; padding: clamp(16px,4.5vw,34px);}
+	.book p{font-size:clamp(15px,2.8vw,16px); line-height:1.95}
+	/* remove decorative left border on narrower screens */
+	.book{ border-left: none; box-shadow: 0 12px 28px rgba(35,68,107,0.05); }
+}
+
+@media (max-width:480px){
+	body{padding:18px}
+	.book{padding:18px 18px; width:96%; border-radius:8px}
+	.book h1{font-size:20px}
+	header h1{font-size:clamp(1.4rem, 9vw, 2rem)}
+	/* improve text flow on small screens */
+	.book p{font-size:clamp(14px,3.8vw,15px); line-height:1.95; hyphens:auto; word-break:break-word}
+}
+
+/* an optional subtle rule for links */
+a{color:var(--text-color);text-decoration:underline}
+
